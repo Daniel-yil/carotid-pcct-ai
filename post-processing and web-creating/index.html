@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carotid AI Analysis</title>
+
+<style>
+    :root {
+        --navy: #0f2f66;
+        --blue: #1769cf;
+        --line: #dce5f1;
+        --text: #183153;
+        --muted: #6f7f94;
+        --bg: #f7f9fc;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+    }
+
+    .page {
+        width: min(1500px, calc(100% - 34px));
+        margin: 24px auto 60px;
+    }
+
+    h1 {
+        margin: 0;
+        color: var(--navy);
+        font-size: 38px;
+        line-height: 1.05;
+    }
+
+    .subtitle {
+        margin-top: 7px;
+        font-size: 18px;
+        color: #3f5f8c;
+    }
+
+    .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 18px;
+        align-items: end;
+        margin: 22px 0 18px;
+    }
+
+    .upload-row {
+        display: grid;
+        grid-template-columns: minmax(320px, 560px) auto;
+        gap: 14px;
+        align-items: center;
+    }
+
+    input[type="file"] {
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #cad5e3;
+        border-radius: 8px;
+        background: white;
+        font-size: 15px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 8px;
+        padding: 14px 24px;
+        background: var(--blue);
+        color: white;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 3px 9px rgba(23, 105, 207, 0.22);
+    }
+
+    button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .status {
+        display: none;
+        min-width: 360px;
+        padding: 16px 20px;
+        border-radius: 8px;
+        border: 1px solid #b8dec4;
+        background: #eaf8ee;
+        color: #22643a;
+        line-height: 1.45;
+    }
+
+    .status.error {
+        display: block;
+        border-color: #efb6b6;
+        background: #fff0f0;
+        color: #8f2525;
+    }
+
+    .status.success {
+        display: block;
+    }
+
+    .section {
+        background: white;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        margin-top: 18px;
+        padding: 18px 18px 20px;
+        box-shadow: 0 2px 7px rgba(28, 54, 92, 0.04);
+    }
+
+    .section-title {
+        color: var(--navy);
+        font-weight: 800;
+        font-size: 24px;
+        margin-bottom: 3px;
+    }
+
+    .section-subtitle {
+        color: #56749d;
+        margin-bottom: 16px;
+    }
+
+    .section-grid {
+        display: grid;
+        grid-template-columns: minmax(520px, 1.05fr) minmax(520px, 0.95fr);
+        gap: 26px;
+        align-items: start;
+    }
+
+    .viewer-panel {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 190px;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .viewer-image-wrap {
+        width: 100%;
+        background: #0a0d13;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid #bcc8d7;
+        min-height: 360px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .viewer-image {
+        width: 100%;
+        max-height: 590px;
+        display: block;
+        object-fit: contain;
+    }
+
+    .legend {
+        font-size: 14px;
+        line-height: 1.95;
+        padding-top: 6px;
+    }
+
+    .legend-row {
+        display: flex;
+        gap: 9px;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .swatch {
+        width: 21px;
+        height: 21px;
+        border-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.12);
+        flex: 0 0 auto;
+    }
+
+    .red { background: rgb(255,70,70); }
+    .green { background: rgb(50,205,80); }
+    .blue { background: rgb(70,125,255); }
+    .yellow { background: rgb(255,220,0); }
+    .magenta { background: rgb(255,0,220); }
+
+    .slider-row {
+        margin-top: 11px;
+        display: grid;
+        grid-template-columns: 105px 1fr auto;
+        gap: 12px;
+        align-items: center;
+        font-size: 14px;
+        color: #3e5c84;
+    }
+
+    input[type="range"] {
+        width: 100%;
+        accent-color: #1874df;
+    }
+
+    .results-card {
+        border-radius: 8px;
+        padding: 15px;
+        min-height: 230px;
+    }
+
+    .results-card.blue-card {
+        background: #edf6ff;
+    }
+
+    .results-card.green-card {
+        background: #effaf1;
+    }
+
+    .results-card.orange-card {
+        background: #fff4e9;
+    }
+
+    .results-card.purple-card {
+        background: #f7efff;
+    }
+
+    .results-heading {
+        font-size: 18px;
+        font-weight: 800;
+        margin-bottom: 11px;
+    }
+
+    .blue-card .results-heading { color: #1759a6; }
+    .green-card .results-heading { color: #278246; }
+    .orange-card .results-heading { color: #bf5b13; }
+    .purple-card .results-heading { color: #6c34a5; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255,255,255,0.75);
+        font-size: 13px;
+    }
+
+    th, td {
+        padding: 10px 9px;
+        border: 1px solid #d7e0eb;
+        text-align: left;
+        vertical-align: top;
+    }
+
+    th {
+        background: rgba(245,248,252,0.95);
+        color: #29405f;
+        font-weight: 700;
+    }
+
+    .segmentation-table td:last-child {
+        width: 90px;
+    }
+
+    .color-cell {
+        width: 42px;
+        height: 18px;
+        border-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.12);
+    }
+
+    .placeholder {
+        color: #8795a8;
+        font-style: italic;
+        padding: 10px 2px;
+    }
+
+    footer {
+        margin-top: 18px;
+        border-top: 1px solid var(--line);
+        padding-top: 13px;
+        color: #62748d;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    @media (max-width: 1100px) {
+        .section-grid,
+        .topbar {
+            grid-template-columns: 1fr;
+        }
+
+        .status {
+            min-width: 0;
+        }
+    }
+
+    @media (max-width: 780px) {
+        .viewer-panel,
+        .upload-row {
+            grid-template-columns: 1fr;
+        }
+
+        .viewer-image-wrap {
+            min-height: 280px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+    }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+    <h1>Carotid AI Analysis</h1>
+    <div class="subtitle">
+        Automated Segmentation, Stenosis, Calcification and FAI Analysis
+    </div>
+
+    <div class="topbar">
+        <div class="upload-row">
+            <input
+                id="imageFile"
+                type="file"
+                accept=".nii,.gz,.nii.gz"
+            >
+            <button id="analyzeButton" type="button">
+                Run Analysis
+            </button>
+        </div>
+
+        <div id="statusBox" class="status"></div>
+    </div>
+
+
+    <!-- =================================================== -->
+    <!-- 1. Segmentation -->
+    <!-- =================================================== -->
+    <section class="section">
+        <div class="section-title">1. Segmentation Result</div>
+        <div class="section-subtitle">
+            Carotid artery segmentation (RECA / RICA / LECA / LICA)
+        </div>
+
+        <div class="section-grid">
+
+            <div>
+                <div class="viewer-panel">
+                    <div>
+                        <div class="viewer-image-wrap">
+                            <img
+                                id="segmentationImage"
+                                class="viewer-image"
+                                alt="Segmentation result"
+                            >
+                        </div>
+
+                        <div class="slider-row">
+                            <span id="segmentationSliceLabel">Slice: - / -</span>
+                            <input
+                                id="segmentationSlider"
+                                type="range"
+                                min="0"
+                                max="0"
+                                value="0"
+                                disabled
+                            >
+                            <span id="segmentationSize">-</span>
+                        </div>
+                        <div style="margin-top:10px;display:flex;gap:8px;">
+                            <button id="segmentationPlay" type="button" style="padding:8px 14px;font-size:13px;">▶ Play</button>
+                            <button id="segmentationPause" type="button" style="padding:8px 14px;font-size:13px;background:#60738d;">⏸ Pause</button>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-row">
+                            <span class="swatch red"></span>
+                            RECA (Label 1)
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch green"></span>
+                            RICA (Label 2)
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch blue"></span>
+                            LECA (Label 3)
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch yellow"></span>
+                            LICA (Label 4)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-card blue-card">
+                <div class="results-heading">Segmentation Information</div>
+
+                <table class="segmentation-table">
+                    <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Vessel</th>
+                        <th>Color</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>RECA (Right External Carotid Artery)</td>
+                        <td><div class="color-cell red"></div></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>RICA (Right Internal Carotid Artery)</td>
+                        <td><div class="color-cell green"></div></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>LECA (Left External Carotid Artery)</td>
+                        <td><div class="color-cell blue"></div></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>LICA (Left Internal Carotid Artery)</td>
+                        <td><div class="color-cell yellow"></div></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =================================================== -->
+    <!-- 2. Vascular Morphology -->
+    <!-- =================================================== -->
+    <section class="section">
+        <div class="section-title">2. Statistics of Vascular Morphology</div>
+        <div class="section-subtitle">
+            Vessel length, diameter and stenosis statistics
+        </div>
+
+        <div class="section-grid">
+            <!-- LEFT: minimum-diameter image -->
+            <div>
+                <div class="results-card green-card">
+                    <div class="results-heading">Minimum Diameter Location</div>
+
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                        <label for="minimumDiameterVessel" style="font-weight:700;">Vessel:</label>
+                        <select id="minimumDiameterVessel" style="padding:7px 10px;border:1px solid #cad5e3;border-radius:6px;background:white;">
+                            <option value="RECA">RECA</option>
+                            <option value="RICA">RICA</option>
+                            <option value="LECA">LECA</option>
+                            <option value="LICA">LICA</option>
+                        </select>
+                        <span id="minimumDiameterValue" style="color:#56749d;font-size:14px;">Minimum diameter: -</span>
+                    </div>
+
+                    <div class="viewer-image-wrap">
+                        <img id="minimumDiameterImage" class="viewer-image" alt="Minimum diameter location">
+                    </div>
+                    <div style="margin-top:9px;color:#6f7f94;font-size:13px;">
+                        Yellow marker indicates the minimum-diameter location.
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: morphology table -->
+            <div class="results-card green-card">
+                <div class="results-heading">Vascular Morphology Statistics</div>
+                <div id="stenosisTable">
+                    <div class="placeholder">Run analysis to display results.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =================================================== -->
+    <!-- 3. Calcification -->
+    <!-- =================================================== -->
+    <section class="section">
+        <div class="section-title">3. Calcification Analysis</div>
+        <div class="section-subtitle">
+            Calcification within segmented vessel (HU ≥ 130)
+        </div>
+
+        <div class="section-grid">
+
+            <div>
+                <div class="viewer-panel">
+                    <div>
+                        <div class="viewer-image-wrap">
+                            <img
+                                id="calcificationImage"
+                                class="viewer-image"
+                                alt="Calcification result"
+                            >
+                        </div>
+
+                        <div class="slider-row">
+                            <span id="calcificationSliceLabel">Slice: - / -</span>
+                            <input
+                                id="calcificationSlider"
+                                type="range"
+                                min="0"
+                                max="0"
+                                value="0"
+                                disabled
+                            >
+                            <span id="calcificationSize">-</span>
+                        </div>
+                        <div style="margin-top:10px;display:flex;gap:8px;">
+                            <button id="calcificationPlay" type="button" style="padding:8px 14px;font-size:13px;">▶ Play</button>
+                            <button id="calcificationPause" type="button" style="padding:8px 14px;font-size:13px;background:#60738d;">⏸ Pause</button>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-row">
+                            <span class="swatch magenta"></span>
+                            Calcification
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-card orange-card">
+                <div class="results-heading">Calcification Results</div>
+                <div id="calcificationTable">
+                    <div class="placeholder">
+                        Run analysis to display results.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- =================================================== -->
+    <!-- 4. FAI -->
+    <!-- =================================================== -->
+    <section class="section">
+        <div class="section-title">4. FAI Analysis</div>
+        <div class="section-subtitle">
+            Perivascular fat attenuation index (-190 to -30 HU)
+        </div>
+
+        <div class="section-grid">
+
+            <div>
+                <div class="viewer-panel">
+                    <div>
+                        <div class="viewer-image-wrap">
+                            <img
+                                id="faiImage"
+                                class="viewer-image"
+                                alt="FAI result"
+                            >
+                        </div>
+
+                        <div class="slider-row">
+                            <span id="faiSliceLabel">Slice: - / -</span>
+                            <input
+                                id="faiSlider"
+                                type="range"
+                                min="0"
+                                max="0"
+                                value="0"
+                                disabled
+                            >
+                            <span id="faiSize">-</span>
+                        </div>
+                        <div style="margin-top:10px;display:flex;gap:8px;">
+                            <button id="faiPlay" type="button" style="padding:8px 14px;font-size:13px;">▶ Play</button>
+                            <button id="faiPause" type="button" style="padding:8px 14px;font-size:13px;background:#60738d;">⏸ Pause</button>
+                        </div>
+                    </div>
+
+                    <div class="legend">
+                        <div class="legend-row">
+                            <span class="swatch red"></span>
+                            RLECA fat
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch green"></span>
+                            RICA fat
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch blue"></span>
+                            LECA fat
+                        </div>
+                        <div class="legend-row">
+                            <span class="swatch yellow"></span>
+                            LICA fat
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="results-card purple-card">
+                <div class="results-heading">FAI Results</div>
+                <div id="faiTable">
+                    <div class="placeholder">
+                        Run analysis to display results.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <footer>
+        <span>Carotid AI Web App | nnU-Net + automated post-processing</span>
+        <span>Version 1.0</span>
+    </footer>
+
+</div>
+
+
+<script>
+    const fileInput = document.getElementById("imageFile");
+    const analyzeButton = document.getElementById("analyzeButton");
+    const statusBox = document.getElementById("statusBox");
+
+    let totalSlices = 0;
+    let imageHeight = 0;
+    let imageWidth = 0;
+
+
+    // -------------------------------------------------------
+    // Viewer configuration
+    // -------------------------------------------------------
+    const viewers = {
+        segmentation: {
+            slider: document.getElementById("segmentationSlider"),
+            label: document.getElementById("segmentationSliceLabel"),
+            image: document.getElementById("segmentationImage"),
+            size: document.getElementById("segmentationSize"),
+            endpoint: "/segmentation-slice",
+            playButton: document.getElementById("segmentationPlay"),
+            pauseButton: document.getElementById("segmentationPause"),
+            playTimer: null
+        },
+
+        calcification: {
+            slider: document.getElementById("calcificationSlider"),
+            label: document.getElementById("calcificationSliceLabel"),
+            image: document.getElementById("calcificationImage"),
+            size: document.getElementById("calcificationSize"),
+            endpoint: "/calcification-slice",
+            playButton: document.getElementById("calcificationPlay"),
+            pauseButton: document.getElementById("calcificationPause"),
+            playTimer: null
+        },
+
+        fai: {
+            slider: document.getElementById("faiSlider"),
+            label: document.getElementById("faiSliceLabel"),
+            image: document.getElementById("faiImage"),
+            size: document.getElementById("faiSize"),
+            endpoint: "/fai-slice",
+            playButton: document.getElementById("faiPlay"),
+            pauseButton: document.getElementById("faiPause"),
+            playTimer: null
+        }
+    };
+
+
+    function setStatus(message, type) {
+        statusBox.className = "status " + type;
+        statusBox.innerHTML = message;
+    }
+
+
+    function safeText(value) {
+        if (value === undefined || value === null || value === "") {
+            return "-";
+        }
+        return String(value);
+    }
+
+
+    const requestVersions = {
+        segmentation: 0,
+        calcification: 0,
+        fai: 0
+    };
+
+
+    function showSlice(viewerName, index) {
+        if (totalSlices <= 0) {
+            return;
+        }
+
+        const viewer = viewers[viewerName];
+
+        let safeIndex = Number(index);
+        safeIndex = Math.max(
+            0,
+            Math.min(safeIndex, totalSlices - 1)
+        );
+
+        viewer.label.textContent =
+            "Slice: " + (safeIndex + 1) + " / " + totalSlices;
+
+        requestVersions[viewerName] += 1;
+        const thisRequest = requestVersions[viewerName];
+
+        const imageUrl =
+            viewer.endpoint +
+            "?index=" + safeIndex +
+            "&t=" + Date.now();
+
+        const preloader = new Image();
+
+        preloader.onload = function () {
+            if (thisRequest === requestVersions[viewerName]) {
+                viewer.image.src = imageUrl;
+            }
+        };
+
+        preloader.onerror = function () {
+            if (thisRequest === requestVersions[viewerName]) {
+                console.warn(
+                    "Could not load " +
+                    viewerName +
+                    " slice " +
+                    safeIndex
+                );
+            }
+        };
+
+        preloader.src = imageUrl;
+    }
+
+
+    function initializeViewers(imageInfo) {
+        totalSlices = Number(imageInfo.num_slices || 0);
+        imageHeight = Number(imageInfo.height || 0);
+        imageWidth = Number(imageInfo.width || 0);
+
+        if (totalSlices <= 0) {
+            return;
+        }
+
+        const middle = Math.floor(totalSlices / 2);
+
+        Object.keys(viewers).forEach(function (name) {
+            const viewer = viewers[name];
+
+            viewer.slider.min = 0;
+            viewer.slider.max = totalSlices - 1;
+            viewer.slider.value = middle;
+            viewer.slider.disabled = false;
+
+            viewer.size.textContent =
+                imageWidth + " × " + imageHeight;
+
+            showSlice(name, middle);
+        });
+    }
+
+    // -------------------------------------------------------
+    // Slider + Play/Pause controls
+    // -------------------------------------------------------
+    Object.keys(viewers).forEach(function (name) {
+        const viewer = viewers[name];
+
+        // Dragging only updates the displayed slice number.
+        viewer.slider.addEventListener("input", function () {
+            const index = Number(viewer.slider.value);
+
+            viewer.label.textContent =
+                "Slice: " +
+                (index + 1) +
+                " / " +
+                totalSlices;
+        });
+
+        // Load only the final slice after the user releases the slider.
+        viewer.slider.addEventListener("change", function () {
+            const index = Number(viewer.slider.value);
+            showSlice(name, index);
+        });
+
+        // Automatic cine playback.
+        viewer.playButton.addEventListener("click", function () {
+            if (totalSlices <= 0 || viewer.playTimer !== null) {
+                return;
+            }
+
+            viewer.playTimer = setInterval(function () {
+                let nextIndex = Number(viewer.slider.value) + 1;
+
+                if (nextIndex >= totalSlices) {
+                    nextIndex = 0;
+                }
+
+                viewer.slider.value = nextIndex;
+
+                viewer.label.textContent =
+                    "Slice: " +
+                    (nextIndex + 1) +
+                    " / " +
+                    totalSlices;
+
+                showSlice(name, nextIndex);
+            }, 400);
+        });
+
+        viewer.pauseButton.addEventListener("click", function () {
+            if (viewer.playTimer !== null) {
+                clearInterval(viewer.playTimer);
+                viewer.playTimer = null;
+            }
+        });
+    });
+
+
+
+
+    // -------------------------------------------------------
+    // Result tables
+    // -------------------------------------------------------
+    function renderVascularMorphologyTable(stenosisRows, lengthRows) {
+        if (!stenosisRows || stenosisRows.length === 0) {
+            return '<div class="placeholder">No vascular morphology results found.</div>';
+        }
+
+        const lengthMap = {};
+        (lengthRows || []).forEach(function (row) {
+            lengthMap[row.vessel] = row.length_mm;
+        });
+
+        let html = `
+            <table>
+                <thead>
+                <tr>
+                    <th>Vessel</th>
+                    <th>Total Length (mm)</th>
+                    <th>Maximum Diameter (mm)</th>
+                    <th>Average Diameter (mm)</th>
+                    <th>Minimum Diameter (mm)</th>
+                    <th>Stenosis (%)</th>
+                </tr>
+                </thead>
+                <tbody>
+        `;
+
+        stenosisRows.forEach(function (row) {
+            html += `
+                <tr>
+                    <td>${safeText(row.vessel)}</td>
+                    <td>${safeText(lengthMap[row.vessel])}</td>
+                    <td>${safeText(row.normal_diameter_mm)}</td>
+                    <td>${safeText(row.average_diameter_mm)}</td>
+                    <td>${safeText(row.minimum_diameter_mm)}</td>
+                    <td>${safeText(row.stenosis_percent)}</td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+        return html;
+    }
+
+
+    function renderCalcificationTable(rows) {
+        if (!rows || rows.length === 0) {
+            return '<div class="placeholder">No calcification results found.</div>';
+        }
+
+        let html = `
+            <table>
+                <thead>
+                <tr>
+                    <th>Vessel</th>
+                    <th>Volume (mm³)</th>
+                    <th>Mean HU</th>
+                    <th>Max HU</th>
+                    <th>Agatston Score</th>
+                    <th>Calcification / Vessel Volume (%)</th>
+                </tr>
+                </thead>
+                <tbody>
+        `;
+
+        rows.forEach(function (row) {
+            html += `
+                <tr>
+                    <td>${safeText(row.vessel)}</td>
+                    <td>${safeText(row.calcification_volume_mm3)}</td>
+                    <td>${safeText(row.mean_calcification_HU)}</td>
+                    <td>${safeText(row.max_calcification_HU)}</td>
+                    <td>${safeText(row.agatston_score)}</td>
+                    <td>${safeText(row.calcification_volume_percent)}</td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+        return html;
+    }
+
+
+    function renderFaiTable(rows) {
+        if (!rows || rows.length === 0) {
+            return '<div class="placeholder">No FAI results found.</div>';
+        }
+
+        let html = `
+            <table>
+                <thead>
+                <tr>
+                    <th>Vessel</th>
+                    <th>FAI (HU)</th>
+                    <th>Fat Volume (mm³)</th>
+                    <th>ROI Voxels</th>
+                </tr>
+                </thead>
+                <tbody>
+        `;
+
+        rows.forEach(function (row) {
+            html += `
+                <tr>
+                    <td>${safeText(row.vessel)}</td>
+                    <td>${safeText(row.FAI_HU)}</td>
+                    <td>${safeText(row.fat_volume_mm3)}</td>
+                    <td>${safeText(row.ROI_voxel_number)}</td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+        return html;
+    }
+
+
+    let latestMorphologyRows = [];
+
+    function updateMinimumDiameterImage() {
+        const vesselSelect = document.getElementById("minimumDiameterVessel");
+        const image = document.getElementById("minimumDiameterImage");
+        const valueLabel = document.getElementById("minimumDiameterValue");
+
+        if (!vesselSelect || !image) return;
+
+        const vessel = vesselSelect.value;
+        image.src = "/minimum-diameter-image?vessel=" +
+            encodeURIComponent(vessel) + "&t=" + Date.now();
+
+        const row = latestMorphologyRows.find(function (item) {
+            return item.vessel === vessel;
+        });
+
+        valueLabel.textContent = row
+            ? "Minimum diameter: " + safeText(row.minimum_diameter_mm) + " mm"
+            : "Minimum diameter: -";
+    }
+
+    document.getElementById("minimumDiameterVessel").addEventListener(
+        "change",
+        updateMinimumDiameterImage
+    );
+
+
+    // -------------------------------------------------------
+    // Run analysis
+    // -------------------------------------------------------
+    analyzeButton.addEventListener("click", async function () {
+        const file = fileInput.files[0];
+
+        if (!file) {
+            setStatus(
+                "<strong>Please choose a NIfTI file first.</strong>",
+                "error"
+            );
+            return;
+        }
+
+        analyzeButton.disabled = true;
+        analyzeButton.textContent = "Running...";
+
+        setStatus(
+            "<strong>Analysis is running.</strong><br>" +
+            "Segmentation and post-processing may take several minutes.",
+            "success"
+        );
+
+        try {
+            const response = await fetch("/analyze", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/octet-stream"
+                },
+                body: file
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.error || "Analysis failed."
+                );
+            }
+
+            document.getElementById("stenosisTable").innerHTML =
+                renderVascularMorphologyTable(result.stenosis, result.length);
+
+            latestMorphologyRows = result.stenosis || [];
+            updateMinimumDiameterImage();
+
+            document.getElementById("calcificationTable").innerHTML =
+                renderCalcificationTable(result.calcification);
+
+            document.getElementById("faiTable").innerHTML =
+                renderFaiTable(result.fai);
+
+            initializeViewers(result.image);
+
+            setStatus(
+                "<strong>✓ Analysis completed successfully!</strong><br>" +
+                "Image: " + file.name + "<br>" +
+                "Slices: " + result.image.num_slices +
+                " &nbsp; Size: " +
+                result.image.width + " × " +
+                result.image.height,
+                "success"
+            );
+
+        } catch (error) {
+            console.error(error);
+
+            setStatus(
+                "<strong>Analysis failed.</strong><br>" +
+                safeText(error.message),
+                "error"
+            );
+
+        } finally {
+            analyzeButton.disabled = false;
+            analyzeButton.textContent = "Run Analysis";
+        }
+    });
+</script>
+
+</body>
+</html>

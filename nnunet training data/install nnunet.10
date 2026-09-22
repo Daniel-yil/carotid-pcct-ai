@@ -1,0 +1,11 @@
+conda create -n nnunet python=3.10 -y
+
+conda activate nnunet
+
+python -m pip install --upgrade pip
+
+pip install torch torchvision torchaudio
+
+pip install nnunetv2
+
+pip install numpy SimpleITK matplotlib
