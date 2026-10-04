@@ -45,9 +45,9 @@ Major preprocessing steps include:
 The model performs 4-label carotid artery segmentation.
 
 - **Label 1:** Right External Carotid Artery (RECA)
-- **Label 2:** Right Internal Carotid Artery (RICA)
+- **Label 2:** Right Internal and Common Carotid Artery region (RI/CCA)
 - **Label 3:** Left External Carotid Artery (LECA)
-- **Label 4:** Left Internal Carotid Artery (LICA)
+- **Label 4:** Left Internal and Common Carotid Artery region (LI/CCA)
 
 ## Post-processing
 
