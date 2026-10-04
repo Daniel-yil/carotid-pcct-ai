@@ -92,6 +92,7 @@ carotid-pcct-ai/
 │   └── Post-processing, quantitative vascular analysis, and web visualization
 │
 ├── pipeline_overview.png
+├── web_interface.png
 ├── .gitignore
 └── README.md
 
