@@ -24,21 +24,10 @@ The workflow includes:
 
 ## Pipeline
 
-CT Image
-↓
-Preprocessing
-↓
-nnU-Net Segmentation
-↓
-4-Label Carotid Artery Masks
-↓
-Post-processing
-↓
-Centerline Extraction
-↓
-Quantitative Analysis
-↓
-Visualization / Analysis Interface
+The overall workflow integrates CT image preprocessing, nnU-Net-based segmentation, post-processing, quantitative vascular analysis, and visualization.
+
+![Pipeline Overview](pipeline_overview.png)
+
 
 ## Segmentation
 
@@ -54,6 +43,11 @@ Major preprocessing steps include:
 - Automated inference
 
 The model performs 4-label carotid artery segmentation.
+
+- **Label 1:** Right External Carotid Artery (RECA)
+- **Label 2:** Right Internal Carotid Artery (RICA)
+- **Label 3:** Left External Carotid Artery (LECA)
+- **Label 4:** Left Internal Carotid Artery (LICA)
 
 ## Post-processing
 
@@ -78,3 +72,35 @@ The system generates:
 - Segmentation masks
 - Calcification maps
 - FAI maps
+
+## Repository Structure
+
+```text
+carotid-pcct-ai/
+├── nnunet training data/
+│   └── Scripts for data validation, preprocessing, training, and inference
+│
+├── post-processing and web-creating/
+│   └── Post-processing, quantitative vascular analysis, and web visualization
+│
+├── pipeline_overview.png
+├── .gitignore
+└── README.md
+
+```
+## Requirements
+
+
+The project was developed in Python and uses the following core tools and libraries:
+
+- Python
+- PyTorch
+- nnU-Net
+- NumPy
+- SimpleITK
+- VMTK
+- 3D Slicer
+
+## Disclaimer
+
+This repository is intended for research and educational purposes only. The pipeline is a research prototype and has not been validated for clinical use.
