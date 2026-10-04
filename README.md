@@ -73,6 +73,14 @@ The system generates:
 - Calcification maps
 - FAI maps
 
+## Web Interface
+
+A web-based interface was developed to integrate segmentation results and quantitative vascular analysis into a unified visualization workflow.
+
+The interface presents carotid artery segmentation, vascular morphology and stenosis measurements, calcification analysis, and perivascular fat attenuation (FAI) analysis.
+
+![Web Interface](web_interface.png)
+
 ## Repository Structure
 
 ```text
